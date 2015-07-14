@@ -1,0 +1,5 @@
+development:
+  url: 'http://localhost:9200'
+
+production:
+  url: 'http://localhost:9200'

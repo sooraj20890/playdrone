@@ -1,0 +1,86 @@
+%br
+.row
+  .span8
+    %h1 #{@app.title} #{@app.version_string}
+  .span4.inline
+    %a.logo{:href => '/'} Google Play With Me
+  .span12
+    %hr
+
+.row
+  .span12.git-path
+    %h4 Git Repository
+    = text_field_tag :query, "git clone #{@repo_path} #{@app_id}", :class => 'input git-path'
+    %hr
+
+.row
+  .span6
+    - if @app.description.present?
+      %h4 Description
+      %p= raw @app.description
+    - if @app.recent_changes.present?
+      %hr
+      %h4 What's New
+      %p= raw @app.recent_changes
+
+  .span6
+    %h4 Stats
+    %table.table.table-condensed.table-bordered.app_info
+      %tbody
+        %tr
+          %td.property Google Play Link
+          %td.value
+            = @app_eid
+            =link_to @app_id, "https://play.google.com/store/apps/details?id=#{@app_id}"
+        %tr
+          %td.property APK Link
+          %td.value= @app.downloaded ? link_to("#{@app_id}-#{@app.version_code}.apk", App.download_url(@app_id, @app.version_code)) : '[not downloaded]'
+        %tr
+          %td.property Creator
+          %td.value= @app.developer_name
+        %tr
+          %td.property Rating
+          %td.value= number_with_precision @app.star_rating, :precision => 2
+        %tr
+          %td.property Number of Ratings
+          %td.value= number_to_human @app.ratings_count
+        %tr
+          %td.property Install Size
+          %td.value= number_to_human_size @app.installation_size
+        %tr
+          %td.property Download Count
+          %td.value &gt; #{number_to_human @app.downloads}
+    %h4 Permissions (#{@app.permission.size})
+    %table.table.table-condensed.table-bordered.permissions
+      %tbody
+        - @app.permission.sort[0...6].each do |perm|
+          %tr
+            %td.permission= perm
+        - if @app.permission.size > 6
+          %tr
+            %td.permission #{@app.permission.size - 6} other permissions not shown
+
+.row
+  .span12
+    %hr
+    - if @diff.to_s.size > 17500 # Couldn't be more lazy. Bite me.
+      %h4#diff What's Really New
+      %p
+        - if params[:show_diff]
+          = link_to 'Show only stats', params.merge(:show_diff => nil, :anchor => :diff)
+        - else
+          = link_to 'Show ./src diff', params.merge(:show_diff => 'src', :anchor => :diff)
+      .git-diff
+        ~ raw @diff
+    - else
+      %h4 No Recorded Updates in Git
+
+.row
+  .span12
+    %hr
+    %h4 #{@results.total} Files
+    %h5 Scoped under ./#{@app_id.gsub(/\./, "/")}
+
+    %ul.unstyled
+      - @results.results.each do |source|
+        %li= link_to source[:filename], "/apps/#{@app_id}/#{source[:filename]}"
